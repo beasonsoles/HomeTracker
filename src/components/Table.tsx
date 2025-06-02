@@ -1,8 +1,12 @@
-import React from "react"
+import React, { useState } from "react"
 import { Button, Table } from "antd"
-import { FaTrash, FaEdit } from "react-icons/fa"
+import { FaTrash, FaEdit, FaPlus, FaChartPie } from "react-icons/fa"
 import type { TableColumnsType, TableProps } from "antd"
-import { Kitchen, type Home } from "../types/Home"
+import { advertiserMap, appMap, isGroundFloorMap, Kitchen, statusMap, type Home } from "../types/Home"
+import HomeButton from "../components/HomeButton"
+import Excel from "../assets/excel.png"
+import { exportToExcel } from "../utils/excel"
+import { FaFilterCircleXmark } from "react-icons/fa6"
 
 const renderColoredText = (text: string, swap: boolean) => {
     let color = ""
@@ -48,17 +52,25 @@ const renderColoredText = (text: string, swap: boolean) => {
     return <span className={color}>{text}</span>
 }
 
-const onChange: TableProps<Home>["onChange"] = (pagination, filters, sorter, extra) => {
-    console.log("params", pagination, filters, sorter, extra)
-}
+type OnChange = NonNullable<TableProps<Home>["onChange"]>
+type Filters = Parameters<OnChange>[1]
 
 type Props = {
     homes: Home[]
+    onAdd: () => void
     onDelete: (selectedHome: Home) => void
     onEdit: (selectedHome: Home) => void
+    onStatsClick: () => void
 }
 
-const HomeTable: React.FC<Props> = ({ homes, onDelete, onEdit }) => {
+const HomeTable: React.FC<Props> = ({ homes, onAdd, onDelete, onEdit, onStatsClick }) => {
+    const [filteredInfo, setFilteredInfo] = useState<Filters>({})
+
+    const onChange: TableProps<Home>["onChange"] = (pagination, filters, sorter, extra) => {
+        console.log("params", pagination, filters, sorter, extra)
+        setFilteredInfo(filters)
+    }
+
     const columns: TableColumnsType<Home> = [
         {
             title: "",
@@ -108,17 +120,19 @@ const HomeTable: React.FC<Props> = ({ homes, onDelete, onEdit }) => {
                 { text: "Rechazado", value: "5" },
                 { text: "Despublicado", value: "6" },
             ],
-            onFilter: (value, record) => record.status === value,
+            filteredValue: filteredInfo.status || ["1", "2", "3", "4", "5"],
+            onFilter: (value, record) => record.status === statusMap[value as keyof typeof statusMap],
             render: (text) => renderColoredText(text, false),
         },
         {
             title: "App",
             dataIndex: "app",
             filters: [
-                { text: "Idealista", value: "idealista" },
-                { text: "Fotocasa", value: "fotocasa" },
+                { text: "Idealista", value: "1" },
+                { text: "Fotocasa", value: "2" },
             ],
-            onFilter: (value, record) => record.app === value,
+            filteredValue: filteredInfo.app || [],
+            onFilter: (value, record) => record.app === appMap[value as keyof typeof appMap],
         },
         {
             title: "Renta",
@@ -147,10 +161,11 @@ const HomeTable: React.FC<Props> = ({ homes, onDelete, onEdit }) => {
             title: "Anunciante",
             dataIndex: "advertiser",
             filters: [
-                { text: "Inmobiliaria", value: "inmobiliaria" },
-                { text: "Particular", value: "particular" },
+                { text: "Inmobiliaria", value: "1" },
+                { text: "Particular", value: "2" },
             ],
-            onFilter: (value, record) => record.advertiser === value,
+            filteredValue: filteredInfo.advertiser || [],
+            onFilter: (value, record) => record.advertiser === advertiserMap[value as keyof typeof advertiserMap],
             render: (text) => renderColoredText(text, false),
         },
         {
@@ -165,11 +180,25 @@ const HomeTable: React.FC<Props> = ({ homes, onDelete, onEdit }) => {
         {
             title: "Es un bajo",
             dataIndex: "isGroundFloor",
+            filters: [
+                { text: "Sí", value: "1" },
+                { text: "No", value: "2" },
+                { text: "No sé", value: "3" },
+            ],
+            filteredValue: filteredInfo.isGroundFloor || [],
+            onFilter: (value, record) =>
+                record.isGroundFloor === isGroundFloorMap[value as keyof typeof isGroundFloorMap],
             render: (text) => renderColoredText(text, true),
         },
         {
             title: "Ascensor",
             dataIndex: "hasElevator",
+            filters: [
+                { text: "Sí", value: true },
+                { text: "No", value: false },
+            ],
+            filteredValue: filteredInfo.hasElevator || [],
+            onFilter: (value, record) => record.hasElevator === value,
             render: (val) => {
                 const text = val === true ? "Sí" : "No"
                 return renderColoredText(text, false)
@@ -178,6 +207,12 @@ const HomeTable: React.FC<Props> = ({ homes, onDelete, onEdit }) => {
         {
             title: "A/C",
             dataIndex: "hasAC",
+            filters: [
+                { text: "Sí", value: true },
+                { text: "No", value: false },
+            ],
+            filteredValue: filteredInfo.hasAC || [],
+            onFilter: (value, record) => record.hasAC === value,
             render: (val) => {
                 const text = val === true ? "Sí" : "No"
                 return renderColoredText(text, false)
@@ -186,6 +221,12 @@ const HomeTable: React.FC<Props> = ({ homes, onDelete, onEdit }) => {
         {
             title: "Garaje",
             dataIndex: "hasGarage",
+            filters: [
+                { text: "Sí", value: true },
+                { text: "No", value: false },
+            ],
+            filteredValue: filteredInfo.hasGarage || [],
+            onFilter: (value, record) => record.hasGarage === value,
             render: (val) => {
                 const text = val === true ? "Sí" : "No"
                 return renderColoredText(text, false)
@@ -197,9 +238,9 @@ const HomeTable: React.FC<Props> = ({ homes, onDelete, onEdit }) => {
             render: (kitchen) =>
                 kitchen
                     ? Object.entries(kitchen)
-                        .filter(([_, value]) => value)
-                        .map(([key]) => Kitchen[key as keyof typeof Kitchen])
-                        .join(", ")
+                          .filter(([_, value]) => value)
+                          .map(([key]) => Kitchen[key as keyof typeof Kitchen])
+                          .join(", ")
                     : "",
             width: "180px",
         },
@@ -214,13 +255,42 @@ const HomeTable: React.FC<Props> = ({ homes, onDelete, onEdit }) => {
         },
     ]
     return (
-        <Table<Home>
-            columns={columns}
-            dataSource={homes}
-            rowClassName={(record) => (record.status === "Despublicado" ? "bg-gray-200" : "")}
-            onChange={onChange}
-            scroll={{ x: "max-content" }}
-        />
+        <>
+            <div className='pt-5 pl-5 pr-5 flex justify-between flex-wrap gap-5'>
+                <div className='flex justify-center gap-2'>
+                    <HomeButton
+                        action={() => setFilteredInfo({})}
+                        style={{ borderWidth: 2, borderColor: "#86efac", color: "black", width: 35, padding: 0 }}
+                    >
+                        <FaFilterCircleXmark />
+                    </HomeButton>
+                    <HomeButton
+                        action={onStatsClick}
+                        style={{ borderWidth: 2, borderColor: "#86efac", color: "black", width: 35, padding: 0 }}
+                    >
+                        <FaChartPie />
+                    </HomeButton>
+                    <HomeButton
+                        action={() => exportToExcel(homes, "pisos")}
+                        style={{ borderWidth: 2, borderColor: "#86efac", color: "black", width: 35, padding: 0 }}
+                    >
+                        <img src={Excel} width={20} alt='Excel icon' />
+                    </HomeButton>
+                </div>
+                <HomeButton action={onAdd} style={{ backgroundColor: "#86efac", border: "none", color: "black" }}>
+                    <FaPlus /> Añadir Piso
+                </HomeButton>
+            </div>
+            <div className='p-5 h-[90%]'>
+                <Table<Home>
+                    columns={columns}
+                    dataSource={homes}
+                    rowClassName={(record) => (record.status === "Despublicado" ? "bg-gray-200" : "")}
+                    onChange={onChange}
+                    scroll={{ x: "max-content" }}
+                />
+            </div>
+        </>
     )
 }
 

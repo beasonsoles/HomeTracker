@@ -2,7 +2,7 @@ import React, { useEffect } from "react"
 
 import { Checkbox, Form, Input, Modal, Radio, Select, Collapse } from "antd"
 import type { Home } from "../types/Home"
-import { mapHomeToRaw, mapRawToHome } from "../utils/home_utils"
+import { mapHomeToRaw, mapRawToHome } from "../utils/home"
 
 const { TextArea } = Input
 const { Panel } = Collapse
