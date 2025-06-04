@@ -144,7 +144,7 @@ const AddHomeForm: React.FC<Props> = ({ open, onClose, onSave, selectedHome }) =
                                     <Radio value='2'>No</Radio>
                                 </Radio.Group>
                             </Form.Item>
-                            <Form.Item label='Aire acondicionado' name='hasAC' style={{ width: "70%" }}>
+                            <Form.Item label='A/C' name='hasAC' style={{ width: "70%" }}>
                                 <Radio.Group>
                                     <Radio value='1'>Sí</Radio>
                                     <Radio value='2'>No</Radio>
@@ -158,7 +158,7 @@ const AddHomeForm: React.FC<Props> = ({ open, onClose, onSave, selectedHome }) =
                                     <Radio value='2'>No</Radio>
                                 </Radio.Group>
                             </Form.Item>
-                            <Form.Item label='Eficiencia Energética' name='energyEfficiency' style={{ width: "70%" }}>
+                            <Form.Item label='EE' name='energyEfficiency' style={{ width: "70%" }}>
                                 <Select placeholder='Seleccionar'>
                                     <Select.Option value='1'>N/A</Select.Option>
                                     <Select.Option value='2'>A</Select.Option>
