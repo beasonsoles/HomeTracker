@@ -81,6 +81,7 @@ export const exportToExcel = async (data: any[], filename: string) => {
     })
 
     if (isAndroid) {
+        alert("Android")
         try {
             const base64 = await blobToBase64(blob)
             await Filesystem.writeFile({
@@ -93,6 +94,7 @@ export const exportToExcel = async (data: any[], filename: string) => {
             console.error("Error guardando el archivo:", error)
         }
     } else {
+        alert("Web")
         const url = window.URL.createObjectURL(blob)
         const a = document.createElement("a")
         a.href = url
