@@ -1,5 +1,4 @@
 import * as XLSX from "xlsx"
-import { isBrowser } from "react-device-detect"
 import { Filesystem, Directory } from "@capacitor/filesystem"
 
 const headers = [
@@ -33,6 +32,10 @@ const headers = [
     "# RADIADORES",
     "NOTAS",
 ]
+
+const userAgent = navigator.userAgent || '';
+
+const isCapacitorApp = userAgent.includes('Capacitor') || userAgent.includes('Electron')
 
 // Helper: convert blob to base64
 const blobToBase64 = (blob: Blob): Promise<string> => {
@@ -80,7 +83,7 @@ export const exportToExcel = async (data: any[], filename: string) => {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
     })
 
-    if (!isBrowser) {
+    if (isCapacitorApp) {
         alert("Android")
         try {
             const base64 = await blobToBase64(blob)
