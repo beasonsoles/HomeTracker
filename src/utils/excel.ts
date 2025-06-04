@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx"
-import { isAndroid } from "react-device-detect"
+import { isBrowser } from "react-device-detect"
 import { Filesystem, Directory } from "@capacitor/filesystem"
 
 const headers = [
@@ -80,7 +80,7 @@ export const exportToExcel = async (data: any[], filename: string) => {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
     })
 
-    if (isAndroid) {
+    if (!isBrowser) {
         alert("Android")
         try {
             const base64 = await blobToBase64(blob)
