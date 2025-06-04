@@ -1,4 +1,6 @@
 import * as XLSX from "xlsx"
+import { isAndroid } from "react-device-detect"
+import { Filesystem, Directory } from "@capacitor/filesystem"
 
 const headers = [
     "ESTADO",
@@ -32,7 +34,19 @@ const headers = [
     "NOTAS",
 ]
 
-export const exportToExcel = (data: any[], filename: string) => {
+// Helper: convert blob to base64
+const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onerror = reject
+        reader.onloadend = () => {
+            const base64data = reader.result?.toString().split(",")[1] || ""
+            resolve(base64data)
+        }
+        reader.readAsDataURL(blob)
+    })
+}
+export const exportToExcel = async (data: any[], filename: string) => {
     const finalData = data.map((row) => {
         // ignore the first column (key)
         let filteredEntries = Object.entries(row).slice(1)
@@ -66,12 +80,26 @@ export const exportToExcel = (data: any[], filename: string) => {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8",
     })
 
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `${filename}.xlsx`
-    document.body.appendChild(a)
-    a.click()
-    window.URL.revokeObjectURL(url)
-    a.remove()
+    if (isAndroid) {
+        try {
+            const base64 = await blobToBase64(blob)
+            await Filesystem.writeFile({
+                path: `${filename}.xlsx`,
+                data: base64,
+                directory: Directory.Documents,
+            })
+            console.log("Archivo guardado correctamente")
+        } catch (error) {
+            console.error("Error guardando el archivo:", error)
+        }
+    } else {
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = `${filename}.xlsx`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        a.remove()
+    }
 }

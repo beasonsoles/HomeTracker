@@ -281,7 +281,7 @@ const HomeTable: React.FC<Props> = ({ homes, onAdd, onDelete, onEdit, onStatsCli
                     <FaPlus /> Añadir Piso
                 </HomeButton>
             </div>
-            <div className='p-5 h-[90%]'>
+            <div className='p-5 mb-10 h-[90%]'>
                 <Table<Home>
                     columns={columns}
                     dataSource={homes}
